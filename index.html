@@ -1,0 +1,38 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Happy Hours</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+html,body,#map{height:100%;margin:0}
+.legend{background:#fff;padding:8px 10px;border-radius:6px;font:13px sans-serif;line-height:1.7}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.pop{font:14px sans-serif;max-width:240px}
+</style></head><body><div id="map"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const PLACES = [{"name": "Bar Revival", "category": "food and drink", "days": "", "time": "", "deals": "$7 happy hour (specific items and prices not stated)", "maps_url": "https://maps.google.com/?cid=6243846829890283175&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA", "lat": 40.7214849, "lng": -73.9879909}, {"name": "Motek Flatiron", "category": "food and drink", "days": "Mon-Fri", "time": "2-5pm", "deals": "Everything is $5 during happy hour | $5 cocktails | $5 food items (pizza slice, filled bun/sandwich)", "maps_url": "https://maps.google.com/?cid=11134202515374398341&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA", "lat": 40.7400781, "lng": -73.9892784}];
+const COLORS = {"food and drink":"#e67e22","just food":"#27ae60","just drink":"#2980b9"};
+const esc = s => String(s || "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const map = L.map("map");
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {maxZoom:19, attribution:"&copy; OpenStreetMap contributors"}).addTo(map);
+const pts = [];
+PLACES.forEach(p => {
+  const deals = (p.deals || "").split(" | ").filter(Boolean).map(esc).join("<br>");
+  const link = p.maps_url ? '<br><a href="' + esc(p.maps_url) + '" target="_blank">Open in Google Maps</a>' : "";
+  const html = '<div class="pop"><b>' + esc(p.name) + '</b><br>' + esc(p.days) + ' ' + esc(p.time) +
+    '<br>' + (deals || "No deal listed") + link + '</div>';
+  L.circleMarker([p.lat, p.lng], {radius:10, color:"#fff", weight:2, fillOpacity:0.95,
+    fillColor: COLORS[p.category] || "#7f8c8d"}).addTo(map).bindPopup(html);
+  pts.push([p.lat, p.lng]);
+});
+if (pts.length) map.fitBounds(pts, {padding:[40,40], maxZoom:15}); else map.setView([40.73,-73.99], 11);
+const legend = L.control({position:"bottomleft"});
+legend.onAdd = () => {
+  const d = L.DomUtil.create("div", "legend");
+  d.innerHTML = Object.entries(COLORS).map(([k,c]) => '<div><span class="dot" style="background:' + c + '"></span>' + k + '</div>').join("");
+  return d;
+};
+legend.addTo(map);
+</script></body></html>
